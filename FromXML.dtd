@@ -1,0 +1,54 @@
+<!-- FromXML.dtd -->
+<!ELEMENT workbook (worksheet)+>
+<!ELEMENT worksheet (row|column|cell|format|range)+>
+<!ATTLIST worksheet title CDATA #REQUIRED>
+
+<!ELEMENT row (cell)*>
+<!ATTLIST row
+  index  CDATA
+  format CDATA
+>
+
+<!ELEMENT column (cell)*>
+<!ATTLIST column
+  index  CDATA
+  format CDATA
+>
+
+<!ELEMENT cell (#PCDATA)>
+<!ATTLIST format CDATA>
+
+<!ELEMENT range (EMPTY)>
+<!ATTLIST range 
+  format CDATA
+  start CDATA
+  end CDATA
+>
+
+<!ELEMENT format (EMPTY)>
+<!ATTLIST format
+  font CDATA
+  size CDATA
+  color CDATA
+  bold ( true | false )
+  italic ( true | false )
+  underline ( true | false )
+  strikeout ( true | false )
+  superscript ( true | false )
+  subscript ( true | false )
+  outline ( true | false )
+  shadow ( true | false )
+
+  num_format ( true | false )
+
+  locked ( true | false )
+  hidden ( true | false )
+n
+  alignment ( left | center | right | fill | justify | merge | top | vcenter | bottom | vjustify )
+
+  bgcolor CDATA
+  fgcolor CDATA
+
+  border ( none | thin_single | medium_single | dashed | dotted | thick_single | double_line | hair )
+  border_color ( black | blue | brown | cyan | gray | green | lime | magenta | navy | orange | purple | red | sliver | white | yellow )
+>
