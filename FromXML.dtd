@@ -1,4 +1,8 @@
-<!-- FromXML.dtd -->
+<!-- 
+  FromXML.dtd - this is FromXML's target DTD.  Currently there is only partial
+  support for each of the tags and attributes speicfied here.  This DTD
+  basically represents a TODO list for us.
+-->
 <!ELEMENT workbook (worksheet)+>
 <!ELEMENT worksheet (row|column|cell|format|range)+>
 <!ATTLIST worksheet title CDATA #REQUIRED>
@@ -7,16 +11,21 @@
 <!ATTLIST row
   index  CDATA
   format CDATA
+  type   ( string | number | url | formula | blank )
 >
 
 <!ELEMENT column (cell)*>
 <!ATTLIST column
   index  CDATA
   format CDATA
+  type   ( string | number | url | formula | blank )
 >
 
 <!ELEMENT cell (#PCDATA)>
-<!ATTLIST format CDATA>
+<!ATTLIST cell
+  format CDATA
+  type   ( string | number | url | formula | blank )
+>
 
 <!ELEMENT range (EMPTY)>
 <!ATTLIST range 
@@ -36,19 +45,31 @@
   strikeout ( true | false )
   superscript ( true | false )
   subscript ( true | false )
-  outline ( true | false )
-  shadow ( true | false )
+  font_outline ( true | false )
+  font_shadow ( true | false )
+  locked ( true | false )
+  hidden ( true | false )
 
-  num_format ( true | false )
+  num_format CDATA
 
   locked ( true | false )
   hidden ( true | false )
 n
-  alignment ( left | center | right | fill | justify | merge | top | vcenter | bottom | vjustify )
+  align ( left | center | right | fill | justify | merge | top | vcenter | bottom | vjustify )
+  text_wrap ( true | false )
+  merge ( true | false )
 
-  bgcolor CDATA
-  fgcolor CDATA
+  bg_color CDATA
+  fg_color CDATA
 
-  border ( none | thin_single | medium_single | dashed | dotted | thick_single | double_line | hair )
-  border_color ( black | blue | brown | cyan | gray | green | lime | magenta | navy | orange | purple | red | sliver | white | yellow )
+  border ( 0 .. 7 )
+  left   ( 0 .. 7 )
+  right  ( 0 .. 7 )
+  top    ( 0 .. 7 )
+  bottom ( 0 .. 7 )
+  border_color ( 8 .. 63 | black | blue | brown | cyan | gray | green | lime | magenta | navy | orange | purple | red | sliver | white | yellow )
+  top_color ( 8 .. 63 | black | blue | brown | cyan | gray | green | lime | magenta | navy | orange | purple | red | sliver | white | yellow )
+  bottom_color ( 8 .. 63 | black | blue | brown | cyan | gray | green | lime | magenta | navy | orange | purple | red | sliver | white | yellow )
+  left_color ( 8 .. 63 | black | blue | brown | cyan | gray | green | lime | magenta | navy | orange | purple | red | sliver | white | yellow )
+  right_color ( 8 .. 63 | black | blue | brown | cyan | gray | green | lime | magenta | navy | orange | purple | red | sliver | white | yellow )
 >

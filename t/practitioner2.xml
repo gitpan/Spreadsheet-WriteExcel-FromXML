@@ -6,6 +6,8 @@
     <format name="default" />
     <format name="bold1" bold="1" />
     <format name="undl1" underline="1" bold="1" />
+    <format name="zipFormat" num_format="00000" />
+    <format name="zip4Format" num_format="0000" />
     <row format="bold1">
       <cell>PRACT_ID</cell>
       <cell>LAST</cell>
@@ -33,7 +35,7 @@
     <row>
     </row>
     <row format="bold1">
-      <cell format="bold1">11784</cell>
+      <cell type="number" format="bold1">11784</cell>
       <cell format="bold1">SMITH</cell>
       <cell format="bold1">JOHN</cell>
       <cell format="bold1">J</cell>
@@ -42,15 +44,15 @@
       <cell format="bold1">M</cell> <!-- 1,7 -->
       <cell>Internal Medicine (Internal Medicine)</cell>
       <cell>Hematology (Internal Medicine)</cell>
-      <cell>43131</cell>
+      <cell type="number">43131</cell>
       <cell>1 HOSPITAL DR</cell>
       <cell></cell>
       <cell></cell>
       <cell></cell>
       <cell>LOWELL</cell>
       <cell>MA</cell>
-      <cell>01852</cell>
-      <cell>1311</cell>
+      <cell type="number" format="zipFormat">01852</cell>
+      <cell type="number" format="zip4Format">1311</cell>
       <cell></cell>
       <cell></cell>
       <cell></cell>

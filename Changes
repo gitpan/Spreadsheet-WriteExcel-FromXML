@@ -1,2 +1,20 @@
+1.01 Fri Aug 29 17:09:14 EDT 2003 wjb
+	* Added parameter for large spreadsheets (>7Mb), this allows
+	  FromXML to work with versions of OLE::Storage_Lite that do not
+	  yet support IO::Scalar output.  This also means that until 
+	  OLE::Storage_Lite is patched, FromXML will only support the 
+	  production of 'smaller' XLS files.
+        * Added data type functionality to rows & cells.
+	  The following types are now supported:
+	    - string
+	    - number
+	    - url
+	    - formula
+	    - blank
+	  An invalid type will default to write_string.
+	  Not defining a type will default to write_string.
+        * Updated DTD
+
 1.00 Tue Jul 29 22:38:39 EDT 2003
 	* first version/release  krburton@cpan.org
+

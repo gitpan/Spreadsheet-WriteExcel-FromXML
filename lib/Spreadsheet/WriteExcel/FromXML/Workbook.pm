@@ -5,6 +5,7 @@ use warnings;
 our $VERSION = '1.00';
 
 use Carp qw(confess cluck);
+use Spreadsheet::WriteExcel;
 use Spreadsheet::WriteExcel::Big;
 use Spreadsheet::WriteExcel::FromXML::Worksheet;
 
@@ -33,7 +34,7 @@ sub new
   my $class = ref($this) || $this;
   my $self  = {};
   bless $self,$class;
-  $self->_init;
+  $self->_init(@_);
   return $self;
 }
 
@@ -46,11 +47,20 @@ object.
 
 sub _init
 {
-  my($self) = @_;
+  my($self,$bigflag) = @_;
   my $buff = '';
   $self->_buffer( \$buff );
   $self->excelFh( IO::Scalar->new( $self->_buffer ) );
-  $self->excelWorkbook( Spreadsheet::WriteExcel::Big->new( $self->excelFh ) );
+  my $workbook = '';
+  if( $bigflag )
+  {
+    $workbook = Spreadsheet::WriteExcel::Big->new( $self->excelFh );
+  }
+  else
+  {
+    $workbook = Spreadsheet::WriteExcel->new( $self->excelFh );
+  }
+  $self->excelWorkbook( $workbook );
   unless( $self->excelWorkbook )
   {
     confess "Could not create a Spreadsheet::WriteExcel object.  This is bad!\n";
@@ -218,7 +228,7 @@ SpreadSheet::WriteExcel::FromXML
 
 =head1 AUTHORS
 
-Justin Bedard juice@lerch.org
+W. Justin Bedard juice@lerch.org
 
 Kyle R. Burton mortis@voicenet.com, krburton@cpan.org
 

@@ -17,7 +17,7 @@ SYNOPSIS
       my $data = Spreadsheet::WriteExcel::FromXML->BuildSpreadsheet( "file.xml" );
 
       # or, even simpler:
-      Spreadsheet::WriteExcel::FromXML->XMLToXLS( "file.xml", "file.xlsx" );
+      Spreadsheet::WriteExcel::FromXML->XMLToXLS( "file.xml", "file.xls" );
 
 DESCRIPTION
     This module uses Spreadsheet::WriteExcel to turn a simple XML data file

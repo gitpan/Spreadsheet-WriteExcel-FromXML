@@ -2,13 +2,12 @@ package Spreadsheet::WriteExcel::FromXML;
 use strict;
 use warnings;
 
-our $VERSION = '1.00';
+our $VERSION = '1.01';
 use Carp qw(confess cluck);
 
 use Spreadsheet::WriteExcel::FromXML::Workbook;
 use IO::Scalar;
 use XML::Parser;
-use Data::Dumper; # only for debuggin
 
 =head1 NAME
 
@@ -31,7 +30,7 @@ Spreadsheet::WriteExcel::FromXML - Create Excel Spreadsheet from XML
   my $data = Spreadsheet::WriteExcel::FromXML->BuildSpreadsheet( "file.xml" );
 
   # or, even simpler:
-  Spreadsheet::WriteExcel::FromXML->XMLToXLS( "file.xml", "file.xlsx" );
+  Spreadsheet::WriteExcel::FromXML->XMLToXLS( "file.xml", "file.xls" );
 
 =head1 DESCRIPTION
 
@@ -42,31 +41,32 @@ See also the FromXML.dtd file in the distribution.
 
 =head1 API REFERENCE
 
-=head2 new($)
+=head2 new([$])
 
 Param:  XML file name - name of file to be parsed.
 Return: ToExcel object.
 
-Constructor.  Requires and XML file name.
+Constructor.  Optionally takes an XML file name.
 
 =cut
 
 sub new
 {
-  my($this,$xmlsource)  = @_;
+  my($this,$xmlsource,$bigflag)  = @_;
   my $class = ref($this) || $this;
   my $self  = {};
   bless $self,$class;
 
   $self->_initializeXMLSource($xmlsource) if $xmlsource;
+  $self->bigflag( $bigflag ) if $bigflag;
 
   return $self;
 }
 
 sub BuildSpreadsheet
 {
-    my($this,$file) = @_;
-    my $fromxml = Spreadsheet::WriteExcel::FromXML->new($file);
+    my($this,$file,$bigflag) = @_;
+    my $fromxml = Spreadsheet::WriteExcel::FromXML->new($file,$bigflag);
     $fromxml->parse;
     $fromxml->buildSpreadsheet;
     return $fromxml->getSpreadsheetData;
@@ -74,8 +74,8 @@ sub BuildSpreadsheet
 
 sub XMLToXLS
 {
-    my($this,$source,$dest) = @_;
-    my $fromxml = Spreadsheet::WriteExcel::FromXML->new($source);
+    my($this,$source,$dest,$bigflag) = @_;
+    my $fromxml = Spreadsheet::WriteExcel::FromXML->new($source,$bigflag);
     $fromxml->parse;
     $fromxml->buildSpreadsheet;
     return $fromxml->writeFile($dest);
@@ -108,7 +108,7 @@ sub _initializeXMLSource
       return 1;
   }
   
-  if( -r $xmlsource ) {
+  if( -1 == index( $xmlsource, '<?xml' ) && -r $xmlsource ) {
       $self->_debug("_initializeXMLSource: xmlsource:'$xmlsource' was a file path.");
       my $fh;
       unless( open $fh, $xmlsource ) {
@@ -123,16 +123,16 @@ sub _initializeXMLSource
   if( UNIVERSAL::isa( $xmlsource, 'SCALAR' )  ) {
       $self->_debug( "_initializeXMLSource: xmlsource:'$xmlsource' was a scalar reference.");
       my $ioh = IO::Scalar->new( $xmlsource ) or confess "Error setting parsing from string: $!\n";
-      $self->xmlfh( $ioh );
+      $self->_xmlfh( $ioh );
       $self->_shouldCloseSource(1);
       return 1;
   }
 
   # assume a string of XML...
-  if( -1 == index( $xmlsource, '<?xml' ) && -1 == index( $xmlsource, '<? xml') ) {
+  if( 0 != index( $xmlsource, '<?xml' ) ) {
       confess "Error: xmlsource wasn't a file handle, glob, or a file ",
         "in the file system, and xmlsource(",substr($xmlsource,0,64),
-        "...) doesn't look like XML to me (doesn't contain '<?xml')\n";
+        "...) doesn't look like XML to me (doesn't start with '<?xml')\n";
   }
 
   $self->_debug( "_initializeXMLSource: xmlsource(",length($xmlsource),") was a string." );
@@ -192,7 +192,6 @@ sub parse
 
 Param:  none.
 Return: true
-Calls:  XML::Parse new & parse.
 
 A method to parse an XML file into a tree-style data structure 
 using XML::Parser.
@@ -215,8 +214,6 @@ sub _parseXMLFileToTree
       confess "Error calling XML::Parser->parse.  No data was parsed!\n";
   }
 
-  $self->_debug( Dumper( $self->_treeData ) );
-
   return 1;
 }
 
@@ -238,15 +235,15 @@ output.
 
 sub _processTree
 {
-  my($self,$ar,$xmltag,$rownum,$colnum,$rowformat) = @_;
+  my($self,$ar,$xmltag,$rownum,$colnum,$rowformat,$rowdatatype,$coldatatype) = @_;
 
   my $attr     = shift @{ $ar } || {};
-  my $datatype = shift @{ $ar } || 0;
+  shift @{ $ar }; # XML::Parser 'guessed' datatype.  Always set to string so it's useless.
   my $data     = shift @{ $ar } || '';
 
   if( 'workbook' eq $xmltag )
   {
-    $self->workbook( Spreadsheet::WriteExcel::FromXML::Workbook->new );
+    $self->workbook( Spreadsheet::WriteExcel::FromXML::Workbook->new($self->bigflag) );
   }
   elsif( 'worksheet' eq $xmltag )
   {
@@ -263,19 +260,29 @@ sub _processTree
   {
     ++${ $rownum };
     ${ $colnum } = -1; # new row, reset the column count.
-    $rowformat = undef;
+    $rowformat   = undef;
+    $rowdatatype = undef;
     if( exists $attr->{'format'} )
     {
       $rowformat = $attr->{'format'};
+    }
+    if( exists $attr->{'type'} )
+    {
+      $rowdatatype = $attr->{'type'};
     }
   }
   elsif( 'cell' eq $xmltag )
   {
     ++${ $colnum };
     my $format = $rowformat || undef;
+    my $datatype = $rowdatatype || $coldatatype || 'string';
     if( exists $attr->{'format'} )
     {
       $format = $attr->{'format'};
+    }
+    if( exists $attr->{'type'} )
+    {
+      $datatype = $attr->{'type'};
     }
     $self->currentWorksheet->addCell( $data, $datatype, $rownum, $colnum, $format );
   }
@@ -296,10 +303,9 @@ sub _processTree
   {
     if( 'ARRAY' eq ref( $ar->[$i] ) )
     {
-      $self->_processTree( $ar->[$i], $ar->[$i-1], $rownum, $colnum, $rowformat );
+      $self->_processTree( $ar->[$i], $ar->[$i-1], $rownum, $colnum, $rowformat, $rowdatatype );
     }
   }
-  # $self->_debug( Dumper( $self->workbook ) );
 }
 
 sub buildSpreadsheet
@@ -327,7 +333,7 @@ sub writeFile
 {
   my($self,$filename) = @_;
   unless( $filename ) {
-    confess "Must pass createExcelFile a file name.\n";
+    confess "Must pass writeFile a file name.\n";
   }
 
   $self->_debug("writing to file: $filename");
@@ -363,7 +369,7 @@ Get/set method to reference our Workbook object.
 sub workbook { @_>1 ? $_[0]->{'_workbook'} = $_[1] : $_[0]->{'_workbook'}; }
 
 sub currentWorksheet { @_>1 ? $_[0]->{'_currentWorksheet'} = $_[1] : $_[0]->{'_currentWorksheet'}; }
-sub currentWorkbook { @_>1 ? $_[0]->{'_currentWorkbook'} = $_[1] : $_[0]->{'_currentWorkbook'}; }
+sub currentWorkbook  { @_>1 ? $_[0]->{'_currentWorkbook'} = $_[1] : $_[0]->{'_currentWorkbook'}; }
 
 =head2 _treeData([$])
 
@@ -395,6 +401,15 @@ sub _debug
 
 sub _shouldCloseSource { @_>1 ? $_[0]->{'_shouldCloseSource'} = $_[1] : $_[0]->{'_shouldCloseSource'}; }
 
+=head2 bigflag([$])
+
+Get/set method for large (>7mb) Excel spreadsheets.  If set, the code will make the 
+appriopriate calls to build a spreadsheet >7mb.  This requires a patch to 
+OLE::Storage_Lite.
+
+=cut
+sub bigflag { @_>1 ? $_[0]->{'_bigflag'} = $_[1] : $_[0]->{'_bigflag'}; }
+
 1;
 
 
@@ -406,8 +421,8 @@ OLE::Storage_Lite
 
 =head1 AUTHORS
 
-Justin Bedard juice@lerch.org
+W. Justin Bedard juice [at] lerch.org
 
-Kyle R. Burton mortis@voicenet.com, krburton@cpan.org
+Kyle R. Burton mortis [at] voicenet.com, krburton [at] cpan.org
 
 =cut

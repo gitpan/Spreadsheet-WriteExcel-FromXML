@@ -62,19 +62,38 @@ Supported data types from Speadsheet::WriteExcel:
 sub addDataType
 {
   my($self,$datatype,$x,$y) = @_;
-  if( 0 == $datatype ) {
+  if( 'string' eq $datatype )
+  {
     $self->dataTypeMethods->[$x][$y] = 'write_string';
-  } else {
+  }
+  elsif( 'number' eq $datatype )
+  {
+    $self->dataTypeMethods->[$x][$y] = 'write_number';
+  }
+  elsif( 'url' eq $datatype )
+  {
+    $self->dataTypeMethods->[$x][$y] = 'write_url';
+  }
+  elsif( 'formula' eq $datatype )
+  {
+    $self->dataTypeMethods->[$x][$y] = 'write_formula';
+  }
+  elsif( 'blank' eq $datatype )
+  {
+    $self->dataTypeMethods->[$x][$y] = 'write_blank';
+  }
+  else
+  {
     cluck "unknown data type '$datatype' defaulting to write.\n";
-    $self->dataTypeMethods->[$x][$y] = 'write';
+    $self->dataTypeMethods->[$x][$y] = 'write_string';
   }
 }
 
 sub addFormat
 {
   my($self,$format,$x,$y) = @_;
-  $self->formats->[$x][$y] = undef unless $format;
-  $self->formats->[$x][$y] = $format;
+  $self->formats->[$x][$y] = undef;
+  $self->formats->[$x][$y] = $format if ( $format );
 }
 
 sub addCell
@@ -115,41 +134,10 @@ sub buildWorksheet
   }
 }
 
-sub excelWorksheet
-{
-  my $self = shift;
-  if( @_ ) {
-    $self->{'_excelWorksheet'} = shift;
-  }
-  return $self->{'_excelWorksheet'};
-}
-
-sub cells
-{
-  my $self = shift;
-  if( @_ ) {
-    $self->{'_cells'} = shift;
-  }
-  return $self->{'_cells'};
-}
-
-sub dataTypeMethods
-{
-  my $self = shift;
-  if( @_ ) {
-    $self->{'_dataTypeMethods'} = shift;
-  }
-  return $self->{'_dataTypeMethods'};
-}
-
-sub formats
-{
-  my $self = shift;
-  if( @_ ) {
-    $self->{'_formats'} = shift;
-  }
-  return $self->{'_formats'};
-}
+sub excelWorksheet  { @_>1 ? $_[0]->{'_excelWorksheet'} = $_[1] : $_[0]->{'_excelWorksheet'}; }
+sub cells           { @_>1 ? $_[0]->{'_cells'} = $_[1] : $_[0]->{'_cells'}; }
+sub dataTypeMethods { @_>1 ? $_[0]->{'_dataTypeMethods'} = $_[1] : $_[0]->{'_dataTypeMethods'}; }
+sub formats         { @_>1 ? $_[0]->{'_formats'} = $_[1] : $_[0]->{'_formats'}; }
 
 1;
 
@@ -159,7 +147,7 @@ SpreadSheet::WriteExcel::FromXML
 
 =head1 AUTHORS
 
-Justin Bedard juice@lerch.org
+W. Justin Bedard juice@lerch.org
 
 Kyle R. Burton mortis@voicenet.com, krburton@cpan.org
 

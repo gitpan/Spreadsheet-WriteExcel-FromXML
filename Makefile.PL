@@ -4,5 +4,6 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
     'NAME'  => 'Spreadsheet::WriteExcel::FromXML',
     'VERSION_FROM' => 'lib/Spreadsheet/WriteExcel/FromXML.pm', # finds $VERSION
-    'PREREQ_PM' => {'Spreadsheet::WriteExcel' => 0.41},
+    'PREREQ_PM'    => { 'Spreadsheet::WriteExcel' => 0.41, 
+	                'OLE::Storage_Lite'       => '0.11.1' },
 );
