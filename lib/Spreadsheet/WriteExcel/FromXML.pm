@@ -2,7 +2,7 @@ package Spreadsheet::WriteExcel::FromXML;
 use strict;
 use warnings;
 
-our $VERSION = '1.01';
+our $VERSION = '1.02';
 use Carp qw(confess cluck);
 
 use Spreadsheet::WriteExcel::FromXML::Workbook;
@@ -108,7 +108,7 @@ sub _initializeXMLSource
       return 1;
   }
   
-  if( -1 == index( $xmlsource, '<?xml' ) && -r $xmlsource ) {
+  if( '.xml' eq substr($xmlsource, -4) && -r $xmlsource ) {
       $self->_debug("_initializeXMLSource: xmlsource:'$xmlsource' was a file path.");
       my $fh;
       unless( open $fh, $xmlsource ) {
@@ -236,10 +236,7 @@ output.
 sub _processTree
 {
   my($self,$ar,$xmltag,$rownum,$colnum,$rowformat,$rowdatatype,$coldatatype) = @_;
-
-  my $attr     = shift @{ $ar } || {};
-  shift @{ $ar }; # XML::Parser 'guessed' datatype.  Always set to string so it's useless.
-  my $data     = shift @{ $ar } || '';
+  my $attr = shift @{ $ar } || {};
 
   if( 'workbook' eq $xmltag )
   {
@@ -250,10 +247,7 @@ sub _processTree
      unless( exists $attr->{'title'} && $attr->{'title'} ) {
        confess "Must define a title attribute for worksheet!\n";
      }
-     unless( exists $attr->{'name'} && $attr->{'name'} ) {
-       confess "Must define a name attribute for worksheet!\n";
-     }
-     $self->currentWorksheet( $self->workbook->addWorksheet( $attr->{'name'}, $attr->{'title'} ) );
+     $self->currentWorksheet( $self->workbook->addWorksheet( $attr->{'title'} ) );
      ${ $rownum } = -1; # new worksheet, reset the row count.
   }
   elsif( 'row' eq $xmltag )
@@ -274,6 +268,14 @@ sub _processTree
   elsif( 'cell' eq $xmltag )
   {
     ++${ $colnum };
+    my $tmp  = shift @{ $ar };
+    my $data = shift @{ $ar } || '';
+    # Partial DTD validation
+    # if( ref($data) )
+    # {
+    #   confess "Unexpected XML syntax.  <cell> tag should not contain any other tags (row ".(++${$rownum}).", col ".(++${$colnum}).").\n";
+    # }
+
     my $format = $rowformat || undef;
     my $datatype = $rowdatatype || $coldatatype || 'string';
     if( exists $attr->{'format'} )

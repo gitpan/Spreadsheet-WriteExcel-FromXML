@@ -1,3 +1,11 @@
+1.02 Mon Sep 15 17:00:27 EDT 2003 wjb
+        * Updated DTD w/ syntax rxp understands.
+	* Removed 'name' attribute from worksheet (redundant to 'title')
+	* Updated example XML document in test directory so that it validates
+	  correctly against DTD.
+	* Fixed bug where you could not declare 2 tags next to each other.
+	  For example <row><cell>1</cell></row> wouldn't work.
+
 1.01 Fri Aug 29 17:09:14 EDT 2003 wjb
 	* Added parameter for large spreadsheets (>7Mb), this allows
 	  FromXML to work with versions of OLE::Storage_Lite that do not

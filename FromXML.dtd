@@ -5,71 +5,73 @@
 -->
 <!ELEMENT workbook (worksheet)+>
 <!ELEMENT worksheet (row|column|cell|format|range)+>
-<!ATTLIST worksheet title CDATA #REQUIRED>
+<!ATTLIST worksheet 
+    title CDATA #REQUIRED
+>
 
 <!ELEMENT row (cell)*>
-<!ATTLIST row
-  index  CDATA
-  format CDATA
-  type   ( string | number | url | formula | blank )
+<!ATTLIST row 
+   index  CDATA #IMPLIED
+   format CDATA #IMPLIED
+   type   (string|number|url|formula|blank) "string"
 >
 
 <!ELEMENT column (cell)*>
 <!ATTLIST column
-  index  CDATA
-  format CDATA
-  type   ( string | number | url | formula | blank )
+  index  CDATA #IMPLIED
+  format CDATA #IMPLIED
+  type   (string|number|url|formula|blank) "string"
 >
 
 <!ELEMENT cell (#PCDATA)>
 <!ATTLIST cell
-  format CDATA
-  type   ( string | number | url | formula | blank )
+  format CDATA #IMPLIED
+  index  CDATA #IMPLIED
+  type   (string|number|url|formula|blank) "string"
 >
 
-<!ELEMENT range (EMPTY)>
+<!ELEMENT range EMPTY>
 <!ATTLIST range 
-  format CDATA
-  start CDATA
-  end CDATA
+  format CDATA #IMPLIED
+  start  CDATA #IMPLIED
+  end    CDATA #IMPLIED
 >
 
-<!ELEMENT format (EMPTY)>
+<!ELEMENT format EMPTY>
 <!ATTLIST format
-  font CDATA
-  size CDATA
-  color CDATA
-  bold ( true | false )
-  italic ( true | false )
-  underline ( true | false )
-  strikeout ( true | false )
-  superscript ( true | false )
-  subscript ( true | false )
-  font_outline ( true | false )
-  font_shadow ( true | false )
-  locked ( true | false )
-  hidden ( true | false )
+  name  CDATA #REQUIRED
+  font  CDATA #IMPLIED
+  size  CDATA #IMPLIED
+  color CDATA #IMPLIED
+  bold ( 1 | 0 ) #IMPLIED
+  italic ( 1 | 0 ) #IMPLIED
+  underline ( 1 | 0 ) #IMPLIED
+  strikeout ( 1 | 0 ) #IMPLIED
+  superscript ( 1 | 0 ) #IMPLIED
+  subscript ( 1 | 0 ) #IMPLIED
+  font_outline ( 1 | 0 ) #IMPLIED
+  font_shadow ( 1 | 0 ) #IMPLIED
 
-  num_format CDATA
+  num_format CDATA #IMPLIED
 
-  locked ( true | false )
-  hidden ( true | false )
-n
-  align ( left | center | right | fill | justify | merge | top | vcenter | bottom | vjustify )
-  text_wrap ( true | false )
-  merge ( true | false )
+  locked ( 1 | 0 ) #IMPLIED
+  hidden ( 1 | 0 ) #IMPLIED
 
-  bg_color CDATA
-  fg_color CDATA
+  align ( left | center | right | fill | justify | merge | top | vcenter | bottom | vjustify ) "left"
+  text_wrap ( 1 | 0 ) #IMPLIED
+  merge ( 1 | 0 ) #IMPLIED
 
-  border ( 0 .. 7 )
-  left   ( 0 .. 7 )
-  right  ( 0 .. 7 )
-  top    ( 0 .. 7 )
-  bottom ( 0 .. 7 )
-  border_color ( 8 .. 63 | black | blue | brown | cyan | gray | green | lime | magenta | navy | orange | purple | red | sliver | white | yellow )
-  top_color ( 8 .. 63 | black | blue | brown | cyan | gray | green | lime | magenta | navy | orange | purple | red | sliver | white | yellow )
-  bottom_color ( 8 .. 63 | black | blue | brown | cyan | gray | green | lime | magenta | navy | orange | purple | red | sliver | white | yellow )
-  left_color ( 8 .. 63 | black | blue | brown | cyan | gray | green | lime | magenta | navy | orange | purple | red | sliver | white | yellow )
-  right_color ( 8 .. 63 | black | blue | brown | cyan | gray | green | lime | magenta | navy | orange | purple | red | sliver | white | yellow )
+  bg_color CDATA #IMPLIED
+  fg_color CDATA #IMPLIED
+
+  border ( 0|1|2|3|4|5|6|7 ) #IMPLIED
+  left   ( 0|1|2|3|4|5|6|7 ) #IMPLIED
+  right  ( 0|1|2|3|4|5|6|7 ) #IMPLIED
+  top    ( 0|1|2|3|4|5|6|7 ) #IMPLIED
+  bottom ( 0|1|2|3|4|5|6|7 ) #IMPLIED
+  border_color ( black | blue | brown | cyan | gray | green | lime | magenta | navy | orange | purple | red | sliver | white | yellow ) #IMPLIED
+  top_color ( black | blue | brown | cyan | gray | green | lime | magenta | navy | orange | purple | red | sliver | white | yellow ) #IMPLIED
+  bottom_color ( black | blue | brown | cyan | gray | green | lime | magenta | navy | orange | purple | red | sliver | white | yellow ) #IMPLIED
+  left_color ( black | blue | brown | cyan | gray | green | lime | magenta | navy | orange | purple | red | sliver | white | yellow ) #IMPLIED
+  right_color ( black | blue | brown | cyan | gray | green | lime | magenta | navy | orange | purple | red | sliver | white | yellow ) #IMPLIED
 >

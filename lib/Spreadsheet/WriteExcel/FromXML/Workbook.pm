@@ -2,7 +2,7 @@ package Spreadsheet::WriteExcel::FromXML::Workbook;
 use strict;
 use warnings;
 
-our $VERSION = '1.00';
+our $VERSION = '1.02';
 
 use Carp qw(confess cluck);
 use Spreadsheet::WriteExcel;
@@ -70,9 +70,8 @@ sub _init
   $self->worksheetOrder( [] );
 }
 
-=head2 addWorksheet($,$)
+=head2 addWorksheet($)
 
-Param:  name  - hash table namespace for the worksheet.
 Param:  title - title for the worksheet that people will see in the Excel spreadsheet.
 Return: void
 
@@ -83,21 +82,21 @@ them later.
 =cut
 sub addWorksheet
 {
-  my($self,$name,$title) = @_;
-  if( exists $self->worksheets->{ $name } )
+  my($self,$title) = @_;
+  if( exists $self->worksheets->{ $title } )
   {
-    confess "Worksheet already exists with name $name\n";
+    confess "Worksheet already exists with name '$title'\n";
   }
 
   my $ws = Spreadsheet::WriteExcel::FromXML::Worksheet->new( $self->excelWorkbook->add_worksheet( $title ) );
-  $self->worksheets->{ $name } = $ws;
+  $self->worksheets->{ $title } = $ws;
 
-  unless( $self->worksheets->{ $name } )
+  unless( $self->worksheets->{ $title } )
   {
     confess "Couldn't create a new worksheet on ",$self->excelWorkbook,"??\n";
   }
-  push @{ $self->worksheetOrder }, $name;
-  return $self->worksheets->{ $name };
+  push @{ $self->worksheetOrder }, $title;
+  return $self->worksheets->{ $title };
 }
 
 sub addFormat

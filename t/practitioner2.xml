@@ -1,14 +1,17 @@
-<?xml version="1.0"?>
-<!-- This is my XML file poop! $Version$ -->
+<?xml version="1.0" ?>
+<!DOCTYPE workbook SYSTEM "../FromXML.dtd">
+
+<!-- This is my XML file! $Version$ -->
 <!-- Can you handle this you jerky? -->
 <workbook>
-  <worksheet name="practitionerProfile" title="Practitioner Profiles">
+  <worksheet title="Practitioner Profiles">
     <format name="default" />
     <format name="bold1" bold="1" />
+    <format name="heading" bold="1" bg_color="yellow" align="center" font="Courier" size="12" italic="1" />
     <format name="undl1" underline="1" bold="1" />
     <format name="zipFormat" num_format="00000" />
     <format name="zip4Format" num_format="0000" />
-    <row format="bold1">
+    <row format="heading">
       <cell>PRACT_ID</cell>
       <cell>LAST</cell>
       <cell>FIRST</cell>
@@ -58,9 +61,9 @@
       <cell></cell>
       <cell>#001234</cell>
     </row>
-    <cell idx="1,7" format="undl1" />
+    <cell index="1,7" format="undl1" />
   </worksheet>
-  <worksheet name="hospitalAffiliations" title="Hospital Affiliations">
+  <worksheet title="Hospital Affiliations">
     <row>
       <cell>PRACT_ID</cell>
       <cell>LAST</cell>
