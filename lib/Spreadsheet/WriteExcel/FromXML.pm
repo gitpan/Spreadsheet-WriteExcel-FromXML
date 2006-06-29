@@ -2,7 +2,7 @@ package Spreadsheet::WriteExcel::FromXML;
 use strict;
 use warnings;
 
-our $VERSION = '1.02';
+our $VERSION = '1.1';
 use Carp qw(confess cluck);
 
 use Spreadsheet::WriteExcel::FromXML::Workbook;
@@ -85,7 +85,7 @@ sub XMLToXLS
 
 Param:  XML file source (GLOB, IO::Handle, file name or XML as a string [or scalar ref])
 Return: true
-Throws: exception if unable to 
+Throws: exception if unable to
 
 Initializer method to check for existance of the XML file.
 
@@ -100,21 +100,21 @@ sub _initializeXMLSource
   unless( defined $xmlsource && length($xmlsource) ) {
       confess "Error, \$xmlsource is a required parameter!\n";
   }
-  
+
   if( UNIVERSAL::isa( $xmlsource, 'IO::Handle' ) || UNIVERSAL::isa( $xmlsource, 'GLOB' ) ) {
       $self->_debug("_initializeXMLSource: xmlsource:'$xmlsource' was an IO::Handle or GLOB");
       $self->_xmlfh( $xmlsource );
       $self->_shouldCloseSource(undef);
       return 1;
   }
-  
+
   if( '.xml' eq substr($xmlsource, -4) && -r $xmlsource ) {
       $self->_debug("_initializeXMLSource: xmlsource:'$xmlsource' was a file path.");
       my $fh;
       unless( open $fh, $xmlsource ) {
           confess "Cannot open '$xmlsource' : $!\n";
       }
-      
+
       $self->_xmlfh( $fh );
       $self->_shouldCloseSource(1);
       return 1;
@@ -139,7 +139,7 @@ sub _initializeXMLSource
   my $ioh = IO::Scalar->new( \$xmlsource ) or confess "Error setting parsing from string: $!\n";
   $self->_xmlfh( $ioh );
   $self->_shouldCloseSource(1);
-  
+
   return 1;
 }
 
@@ -193,7 +193,7 @@ sub parse
 Param:  none.
 Return: true
 
-A method to parse an XML file into a tree-style data structure 
+A method to parse an XML file into a tree-style data structure
 using XML::Parser.
 
 =cut
@@ -204,6 +204,7 @@ sub _parseXMLFileToTree
   eval {
       my $p = new XML::Parser( 'Style' => 'Tree' );
       $self->_treeData( $p->parse( $self->_xmlfh ) );
+
   };
 
   if($@) {
@@ -247,7 +248,7 @@ sub _processTree
      unless( exists $attr->{'title'} && $attr->{'title'} ) {
        confess "Must define a title attribute for worksheet!\n";
      }
-     $self->currentWorksheet( $self->workbook->addWorksheet( $attr->{'title'} ) );
+     $self->currentWorksheet( $self->workbook->addWorksheet( $attr->{'title'}, $attr->{'landscape'}, $attr->{'paper'}, $attr->{'header'}, $attr->{'header_margin'}, $attr->{'footer'}, $attr->{'footer_margin'} ) );
      ${ $rownum } = -1; # new worksheet, reset the row count.
   }
   elsif( 'row' eq $xmltag )
@@ -295,6 +296,29 @@ sub _processTree
      }
      # $self->_debug( "Adding format ",$attr->{'name'} );;
      $self->workbook->addFormat( $attr );
+  }
+  # Range implements set_column functionality
+  elsif ('range' eq $xmltag)
+  {
+    unless (exists $attr->{'first_col'}) {
+      confess "Must define a first column for ranges!\n";
+    }
+    $self->currentWorksheet->addRange($attr->{'first_col'}, $attr->{'last_col'},
+                                        $attr->{'width'}, $attr->{'format'},
+                                        $attr->{'hidden'}, $attr->{'level'});
+  }
+  elsif ('margins' eq $xmltag)
+  {
+    my $tmp  = shift @{ $ar };
+    my $data = shift @{ $ar } || undef;
+    my $lr  = $attr->{'lr'} || undef;
+    my $tb  = $attr->{'tb'} || undef;
+    my $left = $attr->{'left'} || undef;
+    my $right = $attr->{'right'} || undef;
+    my $top = $attr->{'top'} || undef;
+    my $bottom = $attr->{'bottom'} || undef;
+
+    $self->currentWorksheet->setMargins($data, $lr, $tb, $left, $right, $top, $bottom);
   }
   else
   {
@@ -390,7 +414,7 @@ sub _xmlfh { @_>1 ? $_[0]->{'_xmlfh'} = $_[1] : $_[0]->{'_xmlfh'}; }
 
 
 {my $debug = 0;
-sub debug { @_>1 ? $debug = $_[1] : $debug; } 
+sub debug { @_>1 ? $debug = $_[1] : $debug; }
 sub _debug
 {
     my($self,@msg) = @_;
@@ -405,8 +429,8 @@ sub _shouldCloseSource { @_>1 ? $_[0]->{'_shouldCloseSource'} = $_[1] : $_[0]->{
 
 =head2 bigflag([$])
 
-Get/set method for large (>7mb) Excel spreadsheets.  If set, the code will make the 
-appriopriate calls to build a spreadsheet >7mb.  This requires a patch to 
+Get/set method for large (>7mb) Excel spreadsheets.  If set, the code will make the
+appriopriate calls to build a spreadsheet >7mb.  This requires a patch to
 OLE::Storage_Lite.
 
 =cut
@@ -426,5 +450,7 @@ OLE::Storage_Lite
 W. Justin Bedard juice [at] lerch.org
 
 Kyle R. Burton mortis [at] voicenet.com, krburton [at] cpan.org
+
+Brendan W. McAdams bwmcadams [at] cpan.org <Since 1.10>
 
 =cut

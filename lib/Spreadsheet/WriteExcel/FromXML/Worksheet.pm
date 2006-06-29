@@ -2,10 +2,10 @@ package Spreadsheet::WriteExcel::FromXML::Worksheet;
 use strict;
 use warnings;
 
-our $VERSION = '1.02';
+our $VERSION = '1.1';
 
 use Carp qw(confess cluck);
-
+use Data::Dumper;
 =head1 NAME
 
 Spreadsheet::WriteExcel::FromXML::Worksheet
@@ -27,6 +27,7 @@ sub new
   my $this  = shift;
   my $class = ref($this) || $this;
   my $self  = {};
+  $self->{ranges} = [];
   bless $self,$class;
   $self->_init( @_ );
   return $self;
@@ -57,7 +58,7 @@ Supported data types from Speadsheet::WriteExcel:
   write_url()
   write_url_range()
   write_formula()
-  
+
 =cut
 sub addDataType
 {
@@ -105,27 +106,80 @@ sub addCell
   $self->addFormat( $format,$$x,$$y );
 }
 
+sub addRange
+{
+  my ($self, $first_col, $last_col, $width, $format, $hidden, $level) = @_;
+  my $args = {'first_col' => $first_col, 'last_col' => $last_col, 'width' => $width,
+           'format' => $format, 'hidden' => $hidden, 'level' => $level};
+  push(@{$self->{ranges}}, $args);
+}
+
+sub setMargins
+{
+  my ($self, $margin, $lr, $tb, $left, $right, $top, $bottom) = @_;
+  $self->excelWorksheet->set_margins($margin) if defined($margin);
+  $self->excelWorksheet->set_margins_LR($lr) if defined($lr);
+  $self->excelWorksheet->set_margins_TB($tb) if defined($tb);
+  $self->excelWorksheet->set_margin_left($left) if defined($left);
+  $self->excelWorksheet->set_margin_right($right) if defined($right);
+  $self->excelWorksheet->set_margin_top($top) if defined($top);
+  $self->excelWorksheet->set_margin_bottom($bottom) if defined($bottom);
+}
+
+
 sub buildWorksheet
 {
   my($self,$excelFormats) = @_;
+
+  for ( my $x = 0; $x < @{$self->{ranges}}; $x++) {
+    if (${$self->{ranges}}[$x]) {
+      my $range = ${$self->{ranges}}[$x];
+      my $format = $range->{format};
+      my $first_col = $range->{first_col};
+      my $last_col = $range->{last_col};
+      my $width  = $range->{width};
+      my $hidden = $range->{hidden};
+      my $level = $range->{level};
+      my $formatName = $format;
+      if( $formatName ) {
+        unless( exists $excelFormats->{ $formatName } )
+        {
+          cluck "format '$formatName' does not exist!  Ignoring.\n";
+        } else
+        {
+          $format = $excelFormats->{ $formatName };
+        }
+      }
+      $self->excelWorksheet->set_column($first_col, $last_col, $width, $hidden, $level, $format);
+    }
+  }
+
   for( my $i = 0; $i < @{ $self->cells }; ++$i ) {
     if( $self->cells->[$i] ) {
       for( my $j = 0; $j < @{ $self->cells->[$i] }; ++$j ) {
         my $formatName = $self->formats->[$i][$j];
-	my $format = undef;
-	if( $formatName ) {
-	  unless( exists $excelFormats->{ $formatName } )
-	  {
-	    cluck "format '$formatName' does not exist!  Ignoring.\n";
+        my $format = undef;
+        if( $formatName ) {
+        unless( exists $excelFormats->{ $formatName } )
+	    {
+          cluck "format '$formatName' does not exist!  Ignoring.\n";
 	  } else
 	  {
 	    $format = $excelFormats->{ $formatName };
 	  }
 	}
 
-        # print "writing $i x  $j - '",$self->cells->[$i][$j],"'\n";
-	my $dataTypeMethod = $self->dataTypeMethods->[$i][$j];
+        my $dataTypeMethod = $self->dataTypeMethods->[$i][$j];
+        #print "$dataTypeMethod writing $i x  $j - '",$self->cells->[$i][$j],"' with format: " . Dumper($format) ."\n";
+
+        # Hack as current write_blank code isn't working as expected.
+		#  Hack disabled for external use [we use it internally] but needs to be investigated
+        #if ($dataTypeMethod eq 'write_blank') {
+        #  $self->cells->[$i][$j] =  undef;
+        #  $dataTypeMethod = 'write_string';
+        #}
         $self->excelWorksheet->$dataTypeMethod( $i, $j, $self->cells->[$i][$j], $format );
+
       }
     # blank row
     } else {

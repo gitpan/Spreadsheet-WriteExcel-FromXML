@@ -2,7 +2,7 @@ package Spreadsheet::WriteExcel::FromXML::Workbook;
 use strict;
 use warnings;
 
-our $VERSION = '1.02';
+our $VERSION = '1.1';
 
 use Carp qw(confess cluck);
 use Spreadsheet::WriteExcel;
@@ -75,26 +75,46 @@ sub _init
 Param:  title - title for the worksheet that people will see in the Excel spreadsheet.
 Return: void
 
-Creates & adds a new worksheet to the spreadsheet.  It keeps track of the 
+Creates & adds a new worksheet to the spreadsheet.  It keeps track of the
 order the worksheets were added and a hash table so one can easily reference
 them later.
 
 =cut
 sub addWorksheet
 {
-  my($self,$title) = @_;
+  my($self,$title, $landscape, $paper, $header, $header_margin, $footer, $footer_margin) = @_;
   if( exists $self->worksheets->{ $title } )
   {
     confess "Worksheet already exists with name '$title'\n";
   }
-
-  my $ws = Spreadsheet::WriteExcel::FromXML::Worksheet->new( $self->excelWorkbook->add_worksheet( $title ) );
+  my $sheet = $self->excelWorkbook->add_worksheet( $title ) ;
+  my $ws = Spreadsheet::WriteExcel::FromXML::Worksheet->new( $sheet );
   $self->worksheets->{ $title } = $ws;
-
+  $sheet->set_landscape() if defined($landscape);
+  $sheet->set_paper($paper) if defined($paper);
   unless( $self->worksheets->{ $title } )
   {
     confess "Couldn't create a new worksheet on ",$self->excelWorkbook,"??\n";
   }
+
+  if (defined($header)) {
+    #print "Header: $header\n";
+    if (!defined($header_margin)) {
+      $sheet->set_header($header);
+    } else {
+      $sheet->set_header($header, $header_margin);
+    }
+  }
+
+  if (defined($footer)) {
+    #print "Footer: $footer\n";
+    if (!defined($footer_margin)) {
+      $sheet->set_footer($footer);
+    } else {
+      $sheet->set_header($footer, $footer_margin);
+    }
+  }
+
   push @{ $self->worksheetOrder }, $title;
   return $self->worksheets->{ $title };
 }
@@ -113,6 +133,14 @@ sub addFormat
   foreach my $k ( keys %{ $attr } )
   {
     my $method = 'set_'.$k;
+    # Hack for alignment
+    if ($k eq 'align' && ($attr->{'valign'} || $attr->{'halign'})) {
+      next; # ignore align if valign or halign are set...
+    }
+    elsif ($k eq 'halign' or $k eq 'valign')
+    {
+      $method = 'set_align';
+    }
     # print STDERR "Adding format for $method to $format\n";
     $format->$method( $attr->{$k} );
   }
@@ -125,7 +153,7 @@ sub addFormat
 Param:  name  - hash table namespace for the worksheet.
 Return: Worksheet object associated with name.
 
-Accesses the hash table of worksheets and returns the worksheet with the 
+Accesses the hash table of worksheets and returns the worksheet with the
 specified name.
 
 =cut
@@ -162,14 +190,14 @@ sub getFormat
 sub excelFh
 {
   my $self = shift;
-  if( @_ ) { 
+  if( @_ ) {
     $self->{'_excelFh'} = shift;
   }
   return $self->{'_excelFh'};
 }
 
 sub getSpreadsheetData
-{ 
+{
   my($self) = @_;
   return ${ $self->_buffer };
 }
@@ -177,7 +205,7 @@ sub getSpreadsheetData
 sub _buffer
 {
   my $self = shift;
-  if( @_ ) { 
+  if( @_ ) {
     $self->{'__buffer'} = shift;
   }
   return $self->{'__buffer'};
@@ -186,7 +214,7 @@ sub _buffer
 sub excelWorkbook
 {
   my $self = shift;
-  if( @_ ) { 
+  if( @_ ) {
     $self->{'_excelWorkbook'} = shift;
   }
   return $self->{'_excelWorkbook'};
